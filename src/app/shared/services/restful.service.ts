@@ -9,12 +9,15 @@ export class RestfulService {
 
   baseUrl: string = environment.apiUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+  }
 
   // TODO - Check if 'contentType' is needed
   private static buildTokenHeaders(contentType?: boolean) {
     let headers = new HttpHeaders();
-    if (contentType) { headers = headers.append('Content-Type', 'application/json'); }
+    if (contentType) {
+      headers = headers.append('Content-Type', 'application/json');
+    }
     let value;
     if ((value = localStorage.getItem('jwt_token')) != null) {
       headers = headers.append('JWT-Token', value);
@@ -29,14 +32,14 @@ export class RestfulService {
   getLogs() {
     return this.http.get(this.baseUrl + '/logs', {
       headers: RestfulService.buildTokenHeaders(),
-        withCredentials: true
+      withCredentials: true
     });
   }
 
   clearLogs() {
     return this.http.delete(this.baseUrl + '/logs', {
       headers: RestfulService.buildTokenHeaders(),
-        withCredentials: true
+      withCredentials: true
     });
   }
 
@@ -47,7 +50,7 @@ export class RestfulService {
   getDashboard() {
     return this.http.get(this.baseUrl + '/dashboard', {
       headers: RestfulService.buildTokenHeaders(),
-        withCredentials: true
+      withCredentials: true
     });
   }
 
@@ -232,19 +235,39 @@ export class RestfulService {
 
   // CRUD START -->
 
-  getConfig(){
+  getConfig() {
     return this.http.get(this.baseUrl + '/settings', {
       headers: RestfulService.buildTokenHeaders(),
       withCredentials: true
     });
   }
 
-  updateConfig(data){
+  updateConfig(data) {
     return this.http.put(this.baseUrl + '/settings', data, {
-        headers: RestfulService.buildTokenHeaders(),
-        withCredentials: true
+      headers: RestfulService.buildTokenHeaders(),
+      withCredentials: true
     });
   }
 
   // <-- CRUD END
+
+
+// ==========================
+// =====> VNC METHODS =======
+// ==========================
+
+  startWebsockify(data){
+    return this.http.put(this.baseUrl + '/novnc', data, {
+      headers: RestfulService.buildTokenHeaders(),
+      withCredentials: true
+    });
+  }
+
+  stopWebsockify(data){
+    return this.http.post(this.baseUrl + '/novnc', data, {
+      headers: RestfulService.buildTokenHeaders(),
+      withCredentials: true
+    });
+  }
+
 }

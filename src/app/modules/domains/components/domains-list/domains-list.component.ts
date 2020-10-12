@@ -170,7 +170,7 @@ export class DomainsListComponent implements OnInit {
     }
 
     onRemoteDesktop() {
-        this.remoteDesktopModal.open("6081");
+        this.remoteDesktopModal.open("6080", this.selected.vnc_port.toString());
     }
 
     onEditDomain() {
