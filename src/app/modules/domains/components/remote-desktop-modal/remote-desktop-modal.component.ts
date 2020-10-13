@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Output, ViewChild} from '@angular/core';
 import {ClrModal} from '@clr/angular';
 
 import RFB from "../../../../../../node_modules/@novnc/novnc/core/rfb.js";
@@ -9,7 +9,7 @@ import {RestfulService} from '../../../../shared/services/restful.service';
   templateUrl: './remote-desktop-modal.component.html',
   styleUrls: ['./remote-desktop-modal.component.scss']
 })
-export class RemoteDesktopModalComponent implements OnInit {
+export class RemoteDesktopModalComponent {
 
   @Output() finishEvent = new EventEmitter();
   @ViewChild(ClrModal) modal: ClrModal;
@@ -18,8 +18,14 @@ export class RemoteDesktopModalComponent implements OnInit {
   basePort: string;
   domainPort: string;
   pid: string;
+  alert: { success:any, error: any};
+  password: string;
+  connecting: boolean = false;
+  loadingMessage: string = "";
 
-  constructor(private restfulservice: RestfulService) { }
+  constructor(private restfulservice: RestfulService) {
+      this.alert = {success: undefined, error: undefined};
+  }
 
   open(basePort: string, domainPort: string){
     this.modal.open();
@@ -28,12 +34,12 @@ export class RemoteDesktopModalComponent implements OnInit {
   }
 
   connect(){
-    console.log("Conectando...");
+    this.connecting = true;
+    this.loadingMessage = " Iniciando Websockify en el servidor"
     this.restfulservice.startWebsockify({port: this.domainPort})
         .subscribe((data:any) => {
           this.pid = data;
           const host = window.location.hostname;
-          const password = "123";
           const path = "websockify";
 
           let url = "ws";
@@ -50,24 +56,42 @@ export class RemoteDesktopModalComponent implements OnInit {
           }
           url += "/" + path;
 
-          console.log(url);
-
+          this.loadingMessage = "Iniciando conexión con el escritorio remoto";
           this.rfb = new RFB(document.getElementById("screen"), url, {
-            credentials: {password: password},
+            credentials: {password: this.password},
           });
+          this.loadingMessage = undefined;
+
+          this.rfb.addEventListener('securityfailure',
+              (data: any) => {
+              this.alert.error = 'Error de seguridad: ' + data.detail.reason;
+              this.connecting = false;
+              this.loadingMessage = undefined;
+              this.restfulservice.stopWebsockify({ pid: this.pid})
+                  .subscribe((data:any) => {});
+          });
+
         });
   }
-
-  ngOnInit() {
-  }
-
   onClose() {
     if (this.rfb) {
       this.rfb.disconnect();
     }
-    this.restfulservice.stopWebsockify({pid: this.pid})
-        .subscribe((data:any) => {
-          this.opened = false;
-        })
+    if (this.pid){
+        this.restfulservice.stopWebsockify({pid: this.pid})
+            .subscribe((data:any) => {
+                this.resetElements();
+            });
+    } else {
+        this.resetElements();
+    }
+  }
+
+  private resetElements(){
+      this.opened = false;
+      this.connecting = false;
+      this.password = "";
+      this.loadingMessage = undefined;
+      this.alert = {success: undefined, error: undefined};
   }
 }

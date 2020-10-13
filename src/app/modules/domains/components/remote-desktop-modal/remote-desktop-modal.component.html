@@ -1,12 +1,37 @@
 <clr-modal [(clrModalOpen)]="opened" [clrModalSize]="'xl'" [clrModalClosable]="false">
   <h3 class="modal-title">Escritorio remoto</h3>
   <div class="modal-body">
+    <ng-container *ngIf="alert.success || alert.error">
+      <clr-alert [clrAlertType]="alert.success ? 'alert-success' : 'alert-danger'">
+        <clr-alert-item>
+        <span class="alert-text">
+          {{ alert.success || alert.error }}
+        </span>
+        </clr-alert-item>
+      </clr-alert>
+    </ng-container>
+    <div class="clr-row clr-justify-content-center" *ngIf="!connecting">
+      <form clrForm>
+        <clr-input-container>
+          <label>Contraseña</label>
+          <input clrInput placeholder="****" name="password" [(ngModel)]="password" type="password">
+        </clr-input-container>
+      </form>
+    </div>
+    <div class="clr-row clr-justify-content-center" *ngIf="loadingMessage">
+      <span class="spinner spinner-inline">
+        Cargando...
+      </span>
+      <span>
+        {{ loadingMessage }}
+      </span>
+    </div>
     <div id="screen">
 
     </div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-outline" (click)="onClose()">Cerrar</button>
-    <button type="submit" class="btn btn-primary" (click)="connect()">Conectar</button>
+    <button type="submit" class="btn btn-primary" (click)="connect()" [disabled]="!password">Conectar</button>
   </div>
 </clr-modal>
